@@ -133,14 +133,14 @@ Contoh:
 Upload foto struk atau nota untuk pemrosesan otomatis
 
 🔍 *Tanyakan Data Keuangan:*
-Bot sekarang dapat menjawab pertanyaan tentang keuangan Anda!
+Bot sekarang dapat menjawab pertanyaan tentang keuangan dari semua pengguna!
 Contoh:
-• "Transaksi hari ini"
-• "Pengeluaran minggu ini"
-• "Total pendapatan bulan ini"
-• "Transaksi makanan"
-• "5 transaksi terakhir"
-• "Ringkasan keuangan"
+• "Transaksi hari ini" (semua pengguna)
+• "Pengeluaran minggu ini" (semua pengguna)
+• "Total pendapatan bulan ini" (semua pengguna)
+• "Transaksi makanan" (semua pengguna)
+• "5 transaksi terakhir" (semua pengguna)
+• "Ringkasan keuangan" (semua pengguna)
 
 🧠 *Tanya Apa Saja Tentang Keuangan:*
 Bot dapat menjawab semua pertanyaan keuangan menggunakan data dari semua pengguna!

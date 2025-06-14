@@ -55,7 +55,7 @@ async function main() {
         console.log('✅ Bot Keuangan WhatsApp sedang berjalan!');
         console.log('📱 Scan kode QR dengan WhatsApp Anda untuk terhubung');
         console.log('💡 Kirim pesan teks atau gambar untuk melacak keuangan Anda');
-        console.log('🔍 Tanyakan data keuangan: "transaksi hari ini", "pengeluaran bulan ini"');
+        console.log('🔍 Tanyakan data keuangan (semua pengguna): "transaksi hari ini", "pengeluaran bulan ini"');
         console.log('🧠 Tanya apa saja tentang keuangan: "tips menghemat", "analisis pengeluaran"');
         console.log('📊 Laporan bulanan (semua pengguna): /report untuk bulan ini, /report [bulan] [tahun]');
         console.log('🔧 Perintah yang tersedia: /help, /total, /list, /delete [id], /report');

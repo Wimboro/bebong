@@ -359,17 +359,15 @@ class WhatsAppService {
     async handleFinancialQuery(message, queryAnalysis) {
         try {
             console.log('Handling financial query...');
-            const phoneNumber = message.from.replace('@c.us', '');
             const allTransactions = await this.sheetsService.getAllTransactions();
-            // Filter transactions for this specific user
-            const userTransactions = allTransactions.filter(t => t.userId === phoneNumber);
+            // Use all transactions from all users for queries
             
             if (!this.queryService) {
                 await message.reply('Maaf, layanan query tidak tersedia saat ini.');
                 return;
             }
 
-            const response = await this.queryService.compileFinancialData(queryAnalysis, userTransactions);
+            const response = await this.queryService.compileFinancialData(queryAnalysis, allTransactions);
             await message.reply(response);
 
         } catch (error) {

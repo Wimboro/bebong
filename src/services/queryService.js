@@ -166,14 +166,14 @@ User message: "${query}"
 
     async formatResponse(queryType, transactions, title) {
         if (transactions.length === 0) {
-            return `📊 *${title}*\n\nTidak ada transaksi ditemukan untuk periode ini.`;
+            return `📊 *${title} (Semua Pengguna)*\n\nTidak ada transaksi ditemukan untuk periode ini.`;
         }
 
         // Add time context for better user understanding
         const timeData = await this.timeService.getCurrentTime();
         const currentTimeStr = moment(timeData.currentTime).format('DD MMMM YYYY, HH:mm');
         
-        let response = `📊 *${title}*\n`;
+        let response = `📊 *${title} (Semua Pengguna)*\n`;
         response += `🕐 Diambil pada: ${currentTimeStr} WIB\n\n`;
 
         // Calculate totals
@@ -181,7 +181,23 @@ User message: "${query}"
         const totalExpenses = transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0);
         const netAmount = totalIncome - totalExpenses;
 
+        // Calculate user statistics
+        const userStats = {};
+        transactions.forEach(t => {
+            if (!userStats[t.userId]) {
+                userStats[t.userId] = { transactions: 0, totalSpent: 0, totalEarned: 0 };
+            }
+            userStats[t.userId].transactions++;
+            if (t.amount > 0) {
+                userStats[t.userId].totalEarned += t.amount;
+            } else {
+                userStats[t.userId].totalSpent += Math.abs(t.amount);
+            }
+        });
+        const totalUsers = Object.keys(userStats).length;
+
         // Summary section
+        response += `👥 Total Pengguna: ${totalUsers}\n`;
         response += `💰 Total Pendapatan: ${formatRupiahSimple(totalIncome)}\n`;
         response += `💸 Total Pengeluaran: ${formatRupiahSimple(totalExpenses)}\n`;
         response += `📈 Jumlah Bersih: ${formatRupiahSimple(netAmount)}\n`;
@@ -210,12 +226,12 @@ User message: "${query}"
 
         // Transaction list for daily, recent, or category queries
         if (queryType === 'daily' || queryType === 'recent' || queryType === 'category') {
-            response += `*Detail Transaksi:*\n`;
+            response += `*Detail Transaksi (Semua Pengguna):*\n`;
             const displayTransactions = transactions.slice(0, 10); // Limit to 10 for readability
             
             displayTransactions.forEach((t, index) => {
                 const amountText = formatRupiahSimple(t.amount);
-                response += `${index + 1}. ${amountText} - ${t.category}\n   ${t.description}\n   📅 ${t.date}\n\n`;
+                response += `${index + 1}. ${amountText} - ${t.category}\n   ${t.description}\n   👤 User: ${t.userId}\n   📅 ${t.date}\n\n`;
             });
 
             if (transactions.length > 10) {
