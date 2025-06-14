@@ -19,24 +19,26 @@ class FinancialAdvisorService {
             
             const prompt = `${timeContext}
 
-Anda adalah asisten keuangan personal yang cerdas dan membantu. Tugas Anda adalah menjawab pertanyaan atau permintaan pengguna tentang keuangan menggunakan data keuangan mereka sebagai konteks.
+Anda adalah asisten keuangan yang cerdas dan membantu. Tugas Anda adalah menjawab pertanyaan atau permintaan pengguna tentang keuangan menggunakan data keuangan agregat dari semua pengguna sistem sebagai konteks.
 
-KONTEKS KEUANGAN PENGGUNA:
+KONTEKS KEUANGAN SISTEM (SEMUA PENGGUNA):
 ${financialContext}
 
 INSTRUKSI PENTING:
 1. SELALU gunakan Bahasa Indonesia yang ramah dan mudah dipahami
-2. Gunakan data keuangan pengguna di atas sebagai konteks untuk memberikan jawaban yang personal dan relevan
-3. Jika pertanyaan tidak terkait keuangan, arahkan kembali ke topik keuangan dengan sopan
-4. Berikan saran yang praktis dan dapat ditindaklanjuti
-5. Gunakan emoji yang sesuai untuk membuat respons lebih menarik
-6. Jika data keuangan tidak mencukupi untuk menjawab, jelaskan dengan jujur
-7. Hindari memberikan nasihat investasi spesifik, fokus pada pengelolaan keuangan umum
-8. Selalu positif dan mendorong dalam nada komunikasi
+2. Gunakan data keuangan agregat di atas sebagai konteks untuk memberikan jawaban yang informatif dan relevan
+3. Berikan insights berdasarkan pola umum dan tren yang terlihat dari data semua pengguna
+4. Jika pertanyaan tidak terkait keuangan, arahkan kembali ke topik keuangan dengan sopan
+5. Berikan saran yang praktis dan dapat ditindaklanjuti berdasarkan pola umum
+6. Gunakan emoji yang sesuai untuk membuat respons lebih menarik
+7. Jika data keuangan tidak mencukupi untuk menjawab, jelaskan dengan jujur
+8. Hindari memberikan nasihat investasi spesifik, fokus pada pengelolaan keuangan umum
+9. Selalu positif dan mendorong dalam nada komunikasi
+10. Berikan perspektif berdasarkan data kolektif, bukan personal
 
 Pertanyaan pengguna: "${userMessage}"
 
-Berikan jawaban yang komprehensif, personal, dan membantu berdasarkan data keuangan mereka.`;
+Berikan jawaban yang komprehensif dan membantu berdasarkan insights dari data keuangan agregat semua pengguna sistem.`;
 
             const result = await this.genAI.models.generateContent({
                 model: 'gemini-2.0-flash',
@@ -54,7 +56,7 @@ Berikan jawaban yang komprehensif, personal, dan membantu berdasarkan data keuan
     async prepareFinancialContext(transactions) {
         try {
             if (!transactions || transactions.length === 0) {
-                return 'TIDAK ADA DATA TRANSAKSI\nPengguna belum memiliki riwayat transaksi yang tercatat dalam sistem.';
+                return 'TIDAK ADA DATA TRANSAKSI\nSistem belum memiliki riwayat transaksi yang tercatat dari pengguna manapun.';
             }
 
             // Get time data for accurate analysis
@@ -66,6 +68,31 @@ Berikan jawaban yang komprehensif, personal, dan membantu berdasarkan data keuan
             const totalIncome = transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
             const totalExpenses = transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0);
             const netAmount = totalIncome - totalExpenses;
+
+            // Calculate user statistics
+            const userStats = {};
+            transactions.forEach(t => {
+                if (!userStats[t.userId]) {
+                    userStats[t.userId] = { 
+                        transactions: 0, 
+                        totalSpent: 0, 
+                        totalEarned: 0,
+                        categories: new Set()
+                    };
+                }
+                userStats[t.userId].transactions++;
+                userStats[t.userId].categories.add(t.category);
+                if (t.amount > 0) {
+                    userStats[t.userId].totalEarned += t.amount;
+                } else {
+                    userStats[t.userId].totalSpent += Math.abs(t.amount);
+                }
+            });
+
+            const totalUsers = Object.keys(userStats).length;
+            const avgTransactionsPerUser = Math.round(totalTransactions / totalUsers);
+            const avgSpendingPerUser = Math.round(totalExpenses / totalUsers);
+            const avgIncomePerUser = Math.round(totalIncome / totalUsers);
 
             // Category analysis
             const incomeCategories = {};
@@ -104,15 +131,22 @@ Berikan jawaban yang komprehensif, personal, dan membantu berdasarkan data keuan
                 .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
             // Format context
-            let context = `📊 STATISTIK UMUM:
+            let context = `📊 STATISTIK SISTEM (SEMUA PENGGUNA):
+• Total Pengguna Aktif: ${totalUsers}
 • Total Transaksi: ${totalTransactions}
 • Total Pendapatan: ${formatRupiahSimple(totalIncome)}
 • Total Pengeluaran: ${formatRupiahSimple(totalExpenses)}
-• Saldo Bersih: ${formatRupiahSimple(netAmount)}
+• Saldo Bersih Sistem: ${formatRupiahSimple(netAmount)}
 
-📈 ANALISIS BULANAN:
+📈 RATA-RATA PER PENGGUNA:
+• Transaksi per Pengguna: ${avgTransactionsPerUser}
+• Pengeluaran per Pengguna: ${formatRupiahSimple(avgSpendingPerUser)}
+• Pendapatan per Pengguna: ${formatRupiahSimple(avgIncomePerUser)}
+
+📅 ANALISIS BULANAN (AGREGAT):
 • Pengeluaran Bulan Ini: ${formatRupiahSimple(thisMonthExpenses)}
 • Pengeluaran Bulan Lalu: ${formatRupiahSimple(lastMonthExpenses)}
+• Perubahan: ${thisMonthExpenses > lastMonthExpenses ? 'Naik' : thisMonthExpenses < lastMonthExpenses ? 'Turun' : 'Stabil'} ${formatRupiahSimple(Math.abs(thisMonthExpenses - lastMonthExpenses))}
 
 💰 KATEGORI PENDAPATAN:`;
 
@@ -122,18 +156,32 @@ Berikan jawaban yang komprehensif, personal, dan membantu berdasarkan data keuan
                     context += `\n• ${category}: ${formatRupiahSimple(amount)}`;
                 });
 
-            context += `\n\n💸 KATEGORI PENGELUARAN:`;
+            context += `\n\n💸 KATEGORI PENGELUARAN (AGREGAT):`;
             Object.entries(expenseCategories)
                 .sort(([,a], [,b]) => b - a)
                 .forEach(([category, amount]) => {
                     context += `\n• ${category}: ${formatRupiahSimple(amount)}`;
                 });
 
+            // Add most popular categories
+            const categoryFrequency = {};
+            transactions.forEach(t => {
+                categoryFrequency[t.category] = (categoryFrequency[t.category] || 0) + 1;
+            });
+
+            context += `\n\n🔥 KATEGORI PALING POPULER:`;
+            Object.entries(categoryFrequency)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 5)
+                .forEach(([category, count]) => {
+                    context += `\n• ${category}: ${count} transaksi`;
+                });
+
             return context;
 
         } catch (error) {
             console.error('Error preparing financial context:', error);
-            return 'Error menganalisis data keuangan pengguna.';
+            return 'Error menganalisis data keuangan sistem.';
         }
     }
 

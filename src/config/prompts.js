@@ -143,14 +143,14 @@ Contoh:
 • "Ringkasan keuangan"
 
 🧠 *Tanya Apa Saja Tentang Keuangan:*
-Bot dapat menjawab semua pertanyaan keuangan menggunakan data Anda!
+Bot dapat menjawab semua pertanyaan keuangan menggunakan data dari semua pengguna!
 Contoh:
-• "Bagaimana cara menghemat pengeluaran saya?"
-• "Apakah pola belanja saya sudah baik?"
+• "Bagaimana cara menghemat pengeluaran?"
+• "Apa pola belanja yang umum terjadi?"
 • "Tips untuk mengelola uang lebih baik?"
-• "Analisis pengeluaran makanan saya"
-• "Kategori mana yang paling banyak saya pakai?"
-• "Saran budgeting untuk bulan depan"
+• "Analisis pengeluaran makanan secara umum"
+• "Kategori mana yang paling populer?"
+• "Saran budgeting berdasarkan data sistem"
 
 🔧 *Perintah yang Tersedia:*
 • /total - Tampilkan ringkasan keuangan lengkap (semua pengguna)
@@ -160,12 +160,12 @@ Contoh:
 • /report [bulan] [tahun] - Laporan bulan tertentu (semua pengguna)
 • /help - Tampilkan pesan bantuan ini
 
-📊 *Asisten Personal AI:*
-• Analisis pola pengeluaran personal
-• Saran penghematan berdasarkan data Anda
-• Rekomendasi keuangan yang dipersonalisasi
-• Laporan bulanan dengan insights mendalam
-• Jawaban untuk semua pertanyaan keuangan
+📊 *Asisten Keuangan AI:*
+• Analisis pola pengeluaran berdasarkan data agregat
+• Saran penghematan berdasarkan tren umum
+• Rekomendasi keuangan berdasarkan insights sistem
+• Laporan bulanan dengan analisis mendalam
+• Jawaban untuk semua pertanyaan keuangan berdasarkan data kolektif
 
 💡 *Format Mata Uang yang Dipahami:*
 Rp, ribu, rb, juta, jt, k (contoh: Rp50.000, 50rb, 1jt)
@@ -174,7 +174,7 @@ Rp, ribu, rb, juta, jt, k (contoh: Rp50.000, 50rb, 1jt)
 hari ini, kemarin, minggu lalu, tanggal spesifik
 
 Bot dapat memproses beberapa transaksi sekaligus dalam satu pesan!
-Bot akan menjawab SEMUA pertanyaan tentang keuangan menggunakan data Anda! 🚀
+Bot akan menjawab SEMUA pertanyaan tentang keuangan menggunakan data dari semua pengguna! 🚀
 `;
 
 module.exports = {

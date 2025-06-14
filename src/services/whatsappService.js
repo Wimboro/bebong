@@ -152,9 +152,8 @@ class WhatsAppService {
                     if (isFinancial) {
                         console.log('Detected financial question, providing advice...');
                         const allTransactions = await this.sheetsService.getAllTransactions();
-                        // Filter transactions for this specific user
-                        const userTransactions = allTransactions.filter(t => t.userId === phoneNumber);
-                        const response = await this.financialAdvisorService.analyzeAndRespond(messageBody, userTransactions);
+                        // Use all transactions from all users for financial advice
+                        const response = await this.financialAdvisorService.analyzeAndRespond(messageBody, allTransactions);
                         await message.reply(response);
                         return;
                     }

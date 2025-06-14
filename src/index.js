@@ -59,7 +59,7 @@ async function main() {
         console.log('🧠 Tanya apa saja tentang keuangan: "tips menghemat", "analisis pengeluaran"');
         console.log('📊 Laporan bulanan (semua pengguna): /report untuk bulan ini, /report [bulan] [tahun]');
         console.log('🔧 Perintah yang tersedia: /help, /total, /list, /delete [id], /report');
-        console.log('🚀 Bot dapat menjawab SEMUA pertanyaan keuangan menggunakan data Anda!');
+        console.log('🚀 Bot dapat menjawab SEMUA pertanyaan keuangan menggunakan data dari semua pengguna!');
 
         // Handle graceful shutdown
         process.on('SIGINT', async () => {
