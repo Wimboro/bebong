@@ -3,6 +3,7 @@ const GeminiService = require('./services/geminiService');
 const SheetsService = require('./services/sheetsService');
 const WhatsAppService = require('./services/whatsappService');
 const QueryService = require('./services/queryService');
+const FinancialAdvisorService = require('./services/financialAdvisorService');
 
 async function main() {
     try {
@@ -34,6 +35,9 @@ async function main() {
         console.log('🔍 Menginisialisasi layanan Query AI...');
         const queryService = new QueryService(process.env.GEMINI_API_KEY);
 
+        console.log('🤖 Menginisialisasi layanan Financial Advisor AI...');
+        const financialAdvisorService = new FinancialAdvisorService(process.env.GEMINI_API_KEY);
+
         console.log('📈 Menginisialisasi layanan Google Sheets...');
         const sheetsService = new SheetsService(
             process.env.GOOGLE_SHEETS_CREDENTIALS,
@@ -43,7 +47,7 @@ async function main() {
         await sheetsService.initialize();
 
         console.log('💬 Menginisialisasi layanan WhatsApp...');
-        const whatsappService = new WhatsAppService(geminiService, sheetsService, authorizedNumbers, queryService);
+        const whatsappService = new WhatsAppService(geminiService, sheetsService, authorizedNumbers, queryService, financialAdvisorService);
 
         // Start the WhatsApp bot
         await whatsappService.start();
@@ -52,8 +56,10 @@ async function main() {
         console.log('📱 Scan kode QR dengan WhatsApp Anda untuk terhubung');
         console.log('💡 Kirim pesan teks atau gambar untuk melacak keuangan Anda');
         console.log('🔍 Tanyakan data keuangan: "transaksi hari ini", "pengeluaran bulan ini"');
-        console.log('📊 Laporan bulanan: /report untuk bulan ini, /report [bulan] [tahun]');
+        console.log('🧠 Tanya apa saja tentang keuangan: "tips menghemat", "analisis pengeluaran"');
+        console.log('📊 Laporan bulanan (semua pengguna): /report untuk bulan ini, /report [bulan] [tahun]');
         console.log('🔧 Perintah yang tersedia: /help, /total, /list, /delete [id], /report');
+        console.log('🚀 Bot dapat menjawab SEMUA pertanyaan keuangan menggunakan data Anda!');
 
         // Handle graceful shutdown
         process.on('SIGINT', async () => {

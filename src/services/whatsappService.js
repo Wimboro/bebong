@@ -4,7 +4,7 @@ const moment = require('moment');
 const { formatRupiahSimple } = require('../utils/currencyUtils');
 
 class WhatsAppService {
-    constructor(geminiService, sheetsService, authorizedNumbers = [], queryService = null) {
+    constructor(geminiService, sheetsService, authorizedNumbers = [], queryService = null, financialAdvisorService = null) {
         this.client = new Client({
             authStrategy: new LocalAuth({
                 dataPath: './whatsapp-auth'
@@ -19,6 +19,7 @@ class WhatsAppService {
         this.sheetsService = sheetsService;
         this.authorizedNumbers = authorizedNumbers;
         this.queryService = queryService;
+        this.financialAdvisorService = financialAdvisorService;
         this.setupEventHandlers();
     }
 
@@ -143,6 +144,22 @@ class WhatsAppService {
             const transactions = await this.geminiService.processTextMessage(messageBody);
 
             if (transactions.length === 0) {
+                // If no transaction found, check if it's a financial question
+                if (this.financialAdvisorService) {
+                    console.log('No transaction found, checking if financial question...');
+                    const isFinancial = await this.financialAdvisorService.isFinancialQuestion(messageBody);
+                    
+                    if (isFinancial) {
+                        console.log('Detected financial question, providing advice...');
+                        const allTransactions = await this.sheetsService.getAllTransactions();
+                        // Filter transactions for this specific user
+                        const userTransactions = allTransactions.filter(t => t.userId === phoneNumber);
+                        const response = await this.financialAdvisorService.analyzeAndRespond(messageBody, userTransactions);
+                        await message.reply(response);
+                        return;
+                    }
+                }
+                
                 await message.reply('Saya tidak dapat menemukan informasi keuangan dalam pesan Anda. Coba jelaskan pendapatan atau pengeluaran seperti "belanja makan siang Rp25.000" atau "terima gaji Rp1.000.000".\n\nAtau tanyakan informasi keuangan seperti "transaksi hari ini" atau "pengeluaran bulan ini".');
                 return;
             }
@@ -343,14 +360,17 @@ class WhatsAppService {
     async handleFinancialQuery(message, queryAnalysis) {
         try {
             console.log('Handling financial query...');
-            const transactions = await this.sheetsService.getAllTransactions();
+            const phoneNumber = message.from.replace('@c.us', '');
+            const allTransactions = await this.sheetsService.getAllTransactions();
+            // Filter transactions for this specific user
+            const userTransactions = allTransactions.filter(t => t.userId === phoneNumber);
             
             if (!this.queryService) {
                 await message.reply('Maaf, layanan query tidak tersedia saat ini.');
                 return;
             }
 
-            const response = await this.queryService.compileFinancialData(queryAnalysis, transactions);
+            const response = await this.queryService.compileFinancialData(queryAnalysis, userTransactions);
             await message.reply(response);
 
         } catch (error) {
@@ -367,7 +387,8 @@ class WhatsAppService {
             }
 
             console.log('Handling /report command...');
-            const transactions = await this.sheetsService.getAllTransactions();
+            const allTransactions = await this.sheetsService.getAllTransactions();
+            // Use all transactions from all users for reports
             
             // Parse command parameters
             let month = null;
@@ -395,7 +416,7 @@ class WhatsAppService {
                 }
             }
 
-            const report = await this.queryService.generateMonthlyReport(transactions, month, year);
+            const report = await this.queryService.generateMonthlyReport(allTransactions, month, year);
             await message.reply(report);
 
         } catch (error) {

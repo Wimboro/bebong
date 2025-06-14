@@ -244,27 +244,48 @@ User message: "${query}"
             const monthName = moment().month(targetMonth - 1).format('MMMM');
             
             if (monthlyTransactions.length === 0) {
-                return `📊 *Laporan Bulanan ${monthName} ${targetYear}*\n\nTidak ada transaksi tercatat untuk bulan ini.`;
+                return `📊 *Laporan Bulanan ${monthName} ${targetYear} (Semua Pengguna)*\n\nTidak ada transaksi tercatat untuk bulan ini.`;
             }
 
             // Use Gemini Pro to generate intelligent insights with time context
             const timeContext = await this.timeService.formatTimeForPrompt();
+            
+            // Calculate user statistics
+            const userStats = {};
+            monthlyTransactions.forEach(t => {
+                if (!userStats[t.userId]) {
+                    userStats[t.userId] = { transactions: 0, totalSpent: 0, totalEarned: 0 };
+                }
+                userStats[t.userId].transactions++;
+                if (t.amount > 0) {
+                    userStats[t.userId].totalEarned += t.amount;
+                } else {
+                    userStats[t.userId].totalSpent += Math.abs(t.amount);
+                }
+            });
+            
             const prompt = `
 ${timeContext}
 
-Sebagai asisten keuangan personal, buatlah laporan bulanan yang komprehensif berdasarkan data transaksi berikut:
+Sebagai asisten keuangan personal, buatlah laporan bulanan yang komprehensif berdasarkan data transaksi dari semua pengguna berikut:
 
-Data Transaksi ${monthName} ${targetYear}:
-${monthlyTransactions.map(t => `${t.date}: ${t.amount} - ${t.category} (${t.description})`).join('\n')}
+Data Transaksi ${monthName} ${targetYear} (Semua Pengguna):
+${monthlyTransactions.map(t => `${t.date}: ${t.amount} - ${t.category} (${t.description}) [User: ${t.userId}]`).join('\n')}
+
+Statistik Pengguna:
+${Object.entries(userStats).map(([userId, stats]) => 
+    `User ${userId}: ${stats.transactions} transaksi, Pengeluaran: ${formatRupiahSimple(stats.totalSpent)}, Pendapatan: ${formatRupiahSimple(stats.totalEarned)}`
+).join('\n')}
 
 Buatlah laporan yang mencakup:
-1. Ringkasan keuangan (pendapatan, pengeluaran, saldo)
-2. Analisis pola pengeluaran
-3. Kategori pengeluaran terbesar
-4. Tren dan perbandingan (jika memungkinkan)
-5. Rekomendasi dan saran untuk bulan depan
-6. Highlight transaksi penting
+1. Ringkasan keuangan keseluruhan (pendapatan, pengeluaran, saldo dari semua pengguna)
+2. Analisis pola pengeluaran umum
+3. Kategori pengeluaran terbesar secara kolektif
+4. Tren dan perbandingan bulan-ke-bulan (jika memungkinkan)
+5. Insights tentang kebiasaan finansial umum
+6. Highlight transaksi atau pola yang menarik
 
+PENTING: Ini adalah data agregat dari semua pengguna sistem, jadi berikan analisis yang bersifat umum dan tidak personal.
 Format laporan dalam bahasa Indonesia yang mudah dipahami dan profesional.
 Gunakan emoji yang sesuai untuk membuat laporan lebih menarik.
 `;
@@ -279,7 +300,7 @@ Gunakan emoji yang sesuai untuk membuat laporan lebih menarik.
         } catch (error) {
             console.error('Error generating monthly report:', error);
             // Fallback to basic report
-            return await this.formatResponse('monthly', monthlyTransactions, `Laporan Bulanan ${monthName} ${targetYear}`);
+            return await this.formatResponse('monthly', monthlyTransactions, `Laporan Bulanan ${monthName} ${targetYear} (Semua Pengguna)`);
         }
     }
 }
